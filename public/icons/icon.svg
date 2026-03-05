@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#09090B"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#EA580C" stroke-width="24"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#EA580C" stroke-width="16" opacity="0.6"/>
+  <circle cx="256" cy="256" r="60" fill="#EA580C"/>
+  <path d="M200 180 L180 160 L160 180 L180 200 Z" fill="#EA580C"/>
+  <path d="M312 180 L332 160 L352 180 L332 200 Z" fill="#EA580C"/>
+  <path d="M200 332 L180 352 L160 332 L180 312 Z" fill="#EA580C"/>
+  <path d="M312 332 L332 352 L352 332 L332 312 Z" fill="#EA580C"/>
+  <text x="256" y="420" text-anchor="middle" fill="#FFFFFF" font-family="Arial Black, sans-serif" font-size="48" font-weight="bold">FM</text>
+</svg>
