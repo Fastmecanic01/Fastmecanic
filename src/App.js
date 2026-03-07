@@ -753,247 +753,6 @@ const AdminLogin = () => {
   );
 };
 
-// ============ ADMIN SETTINGS PAGE ============
-const AdminSettingsPage = () => {
-  const navigate = useNavigate();
-  const { language } = useLanguage();
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState('profile');
-
-  const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` } });
-
-  useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) { 
-      navigate('/admin'); 
-      return; 
-    }
-    
-    const fetchSettings = async () => {
-      try {
-        const res = await axios.get(`${API}/admin/settings`, getAuthHeaders());
-        setSettings(res.data);
-      } catch (err) { 
-        console.error(err);
-        if (err.response?.status === 401) {
-          localStorage.removeItem('admin_token');
-          navigate('/admin');
-        }
-      } finally { setLoading(false); }
-    };
-    fetchSettings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const saveProfile = async () => {
-    setSaving(true);
-    try {
-      await axios.put(`${API}/admin/settings/profile`, settings.profile, getAuthHeaders());
-      toast.success(language === 'es' ? '¡Perfil guardado!' : 'Profile saved!');
-    } catch (err) { toast.error('Error'); }
-    finally { setSaving(false); }
-  };
-
-  const saveSchedule = async () => {
-    setSaving(true);
-    try {
-      await axios.put(`${API}/admin/settings/schedule`, settings.schedule, getAuthHeaders());
-      toast.success(language === 'es' ? '¡Horario guardado!' : 'Schedule saved!');
-    } catch (err) { toast.error('Error'); }
-    finally { setSaving(false); }
-  };
-
-  const saveServices = async () => {
-    setSaving(true);
-    try {
-      await axios.put(`${API}/admin/settings/services`, settings.services, getAuthHeaders());
-      toast.success(language === 'es' ? '¡Servicios guardados!' : 'Services saved!');
-    } catch (err) { toast.error('Error'); }
-    finally { setSaving(false); }
-  };
-
-  const savePaymentMethods = async () => {
-    setSaving(true);
-    try {
-      await axios.put(`${API}/admin/settings/payment-methods`, settings.payment_methods, getAuthHeaders());
-      toast.success(language === 'es' ? '¡Métodos de pago guardados!' : 'Payment methods saved!');
-    } catch (err) { toast.error('Error'); }
-    finally { setSaving(false); }
-  };
-
-  const saveZones = async () => {
-    setSaving(true);
-    try {
-      await axios.put(`${API}/admin/settings/service-zones`, settings.service_zones, getAuthHeaders());
-      toast.success(language === 'es' ? '¡Zonas guardadas!' : 'Zones saved!');
-    } catch (err) { toast.error('Error'); }
-    finally { setSaving(false); }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen dark bg-background flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  const sections = [
-    { id: 'profile', icon: User, label: language === 'es' ? 'Mi Perfil' : 'My Profile' },
-    { id: 'schedule', icon: Clock, label: language === 'es' ? 'Horarios' : 'Schedule' },
-    { id: 'services', icon: Wrench, label: language === 'es' ? 'Servicios' : 'Services' },
-    { id: 'payments', icon: CreditCard, label: language === 'es' ? 'Pagos' : 'Payments' },
-    { id: 'zones', icon: MapPinned, label: language === 'es' ? 'Zonas' : 'Zones' },
-  ];
-
-  const dayLabels = {
-    monday: language === 'es' ? 'Lunes' : 'Monday',
-    tuesday: language === 'es' ? 'Martes' : 'Tuesday',
-    wednesday: language === 'es' ? 'Miércoles' : 'Wednesday',
-    thursday: language === 'es' ? 'Jueves' : 'Thursday',
-    friday: language === 'es' ? 'Viernes' : 'Friday',
-    saturday: language === 'es' ? 'Sábado' : 'Saturday',
-    sunday: language === 'es' ? 'Domingo' : 'Sunday',
-  };
-
-  return (
-    <div className="min-h-screen dark bg-background">
-      <div className="max-w-6xl mx-auto p-4 md:p-8">
-        {/* Header with Back Button */}
-        <div className="flex items-center gap-4 mb-8">
-          <button 
-            onClick={() => navigate('/admin/dashboard')} 
-            className="p-2 hover:bg-white/10 rounded-xl transition-colors"
-            title={language === 'es' ? 'Volver al Dashboard' : 'Back to Dashboard'}
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div>
-            <h1 className="font-display text-3xl md:text-4xl font-bold uppercase tracking-tight bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-              {language === 'es' ? 'Ajustes' : 'Settings'}
-            </h1>
-            <p className="text-muted-foreground mt-1">{language === 'es' ? 'Configura tu negocio' : 'Configure your business'}</p>
-          </div>
-        </div>
-
-        {/* Section Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          {sections.map(s => (
-            <button 
-              key={s.id} 
-              onClick={() => setActiveSection(s.id)} 
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                activeSection === s.id 
-                  ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30' 
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <s.icon className="w-4 h-4" />
-              {s.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Profile Section */}
-        {activeSection === 'profile' && settings && (
-          <Card className="p-6 border-orange-500/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="font-display text-xl font-bold uppercase tracking-tight">{language === 'es' ? 'Mi Perfil' : 'My Profile'}</h2>
-                <p className="text-sm text-muted-foreground">{language === 'es' ? 'Tu información de contacto' : 'Your contact information'}</p>
-              </div>
-            </div>
-            <div className="grid gap-4">
-              <Input label={language === 'es' ? 'Nombre' : 'Name'} value={settings.profile.name} onChange={e => setSettings({...settings, profile: {...settings.profile, name: e.target.value}})} />
-              <Input label={language === 'es' ? 'Teléfono' : 'Phone'} value={settings.profile.phone} onChange={e => setSettings({...settings, profile: {...settings.profile, phone: e.target.value}})} />
-              <Input label="Email" value={settings.profile.email} onChange={e => setSettings({...settings, profile: {...settings.profile, email: e.target.value}})} />
-              <Textarea label={language === 'es' ? 'Bio' : 'Bio'} value={settings.profile.bio} onChange={e => setSettings({...settings, profile: {...settings.profile, bio: e.target.value}})} />
-            </div>
-            <Button onClick={saveProfile} disabled={saving} className="w-full mt-6">
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? (language === 'es' ? 'Guardando...' : 'Saving...') : (language === 'es' ? 'Guardar Perfil' : 'Save Profile')}
-            </Button>
-          </Card>
-        )}
-
-        {/* Services Section - Simplified */}
-        {activeSection === 'services' && settings && (
-          <Card className="p-6 border-orange-500/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-                <Wrench className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="font-display text-xl font-bold uppercase tracking-tight">{language === 'es' ? 'Servicios' : 'Services'}</h2>
-                <p className="text-sm text-muted-foreground">{language === 'es' ? 'Configura tus servicios y precios' : 'Configure your services and prices'}</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {settings.services.map((service, idx) => (
-                <div key={idx} className="p-4 bg-muted/50 rounded-xl">
-                  <Input 
-                    label={language === 'es' ? 'Nombre (Español)' : 'Name (Spanish)'} 
-                    value={service.name} 
-                    onChange={e => {
-                      const newServices = [...settings.services];
-                      newServices[idx].name = e.target.value;
-                      setSettings({...settings, services: newServices});
-                    }}
-                    className="mb-3"
-                  />
-                  <Input 
-                    label={language === 'es' ? 'Nombre (Inglés)' : 'Name (English)'} 
-                    value={service.name_en} 
-                    onChange={e => {
-                      const newServices = [...settings.services];
-                      newServices[idx].name_en = e.target.value;
-                      setSettings({...settings, services: newServices});
-                    }}
-                    className="mb-3"
-                  />
-                  <Input 
-                    label={language === 'es' ? 'Precio ($)' : 'Price ($)'} 
-                    type="number" 
-                    value={service.price} 
-                    onChange={e => {
-                      const newServices = [...settings.services];
-                      newServices[idx].price = parseFloat(e.target.value) || 0;
-                      setSettings({...settings, services: newServices});
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <Button onClick={saveServices} disabled={saving} className="w-full mt-6">
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? (language === 'es' ? 'Guardando...' : 'Saving...') : (language === 'es' ? 'Guardar Servicios' : 'Save Services')}
-            </Button>
-          </Card>
-        )}
-
-        {/* Other sections message */}
-        {(activeSection === 'schedule' || activeSection === 'payments' || activeSection === 'zones') && (
-          <Card className="p-8 border-orange-500/20 text-center">
-            <p className="text-muted-foreground">
-              {language === 'es' 
-                ? `La sección "${sections.find(s => s.id === activeSection)?.label}" estará disponible pronto.` 
-                : `The "${sections.find(s => s.id === activeSection)?.label}" section will be available soon.`}
-            </p>
-            <Button onClick={() => navigate('/admin/dashboard')} variant="outline" className="mt-4">
-              {language === 'es' ? 'Volver al Dashboard' : 'Back to Dashboard'}
-            </Button>
-          </Card>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // ============ ADMIN DASHBOARD ============
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -1003,6 +762,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const adminName = localStorage.getItem('admin_name') || 'Admin';
   const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` } });
@@ -1109,20 +869,18 @@ const AdminDashboard = () => {
             <span className="font-display text-lg font-bold uppercase tracking-tight">Fast Mechanic</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/admin/settings')} className="p-2 hover:bg-white/10 rounded-xl transition-colors" title="Settings">
-              <Settings className="w-5 h-5" />
+            <button onClick={() => setActiveTab(activeTab === 'dashboard' ? 'settings' : 'dashboard')} className="p-2 hover:bg-muted rounded-xl">
+              {activeTab === 'dashboard' ? <Settings className="w-5 h-5" /> : <LayoutDashboard className="w-5 h-5" />}
             </button>
             <LanguageSelector variant="dark" />
-            <button onClick={logout} className="p-2 hover:bg-white/10 rounded-xl transition-colors" title="Logout">
-              <LogOut className="w-5 h-5" />
-            </button>
+            <button onClick={logout} className="p-2 hover:bg-muted rounded-xl"><LogOut className="w-5 h-5" /></button>
           </div>
         </div>
 
-        {/* Dashboard Content */}
-        <>
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {activeTab === 'dashboard' ? (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
                 { label: t('today'), value: stats?.today || 0, icon: Calendar, color: 'from-blue-500 to-blue-600' },
                 { label: t('pending'), value: stats?.pending || 0, icon: Clock, color: 'from-yellow-500 to-orange-500' },
@@ -1211,6 +969,9 @@ const AdminDashboard = () => {
               )}
             </div>
           </>
+        ) : (
+          <AdminSettings />
+        )}
       </main>
     </div>
   );
@@ -1556,7 +1317,6 @@ function App() {
             <Route path="/confirmation/:id" element={<ConfirmationPage />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/settings" element={<ProtectedRoute><AdminSettingsPage /></ProtectedRoute>} />
           </Routes>
         </BrowserRouter>
       </div>
