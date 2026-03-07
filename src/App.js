@@ -885,7 +885,7 @@ const AdminDashboard = () => {
             <LayoutDashboard className="w-5 h-5" />
             <span className="font-medium">{t('dashboard')}</span>
           </button>
-          <button onClick={openSettings} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-white/5 text-muted-foreground hover:text-white">
+          <button onClick={openSettings} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-white/5 text-muted-foreground hover:text-white" data-testid="settings-btn-desktop">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Ajustes</span>
           </button>
@@ -917,7 +917,7 @@ const AdminDashboard = () => {
             <span className="font-display text-lg font-bold uppercase tracking-tight">Fast Mechanic</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={openSettings} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+            <button onClick={openSettings} className="p-2 hover:bg-white/10 rounded-xl transition-colors" data-testid="settings-btn-mobile">
               <Settings className="w-5 h-5" />
             </button>
             <LanguageSelector variant="dark" />
@@ -1091,6 +1091,7 @@ const AdminDashboard = () => {
               disabled={savingSettings}
               variant="fire"
               className="w-full"
+              data-testid="settings-save-btn"
             >
               <Save className="w-4 h-4 mr-2" />
               {savingSettings ? (language === 'es' ? 'Guardando...' : 'Saving...') : (language === 'es' ? 'Guardar Cambios' : 'Save Changes')}
