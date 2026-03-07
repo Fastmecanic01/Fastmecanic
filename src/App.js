@@ -766,7 +766,10 @@ const AdminSettingsPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
-    if (!token) { navigate('/admin'); return; }
+    if (!token) { 
+      navigate('/admin'); 
+      return; 
+    }
     
     const fetchSettings = async () => {
       try {
@@ -781,7 +784,8 @@ const AdminSettingsPage = () => {
       } finally { setLoading(false); }
     };
     fetchSettings();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const saveProfile = async () => {
     setSaving(true);
