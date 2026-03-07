@@ -88,6 +88,28 @@ const Card = ({ children, className = "", glow = false }) => (
   </div>
 );
 
+const Modal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={onClose}>
+      <div className="bg-background border border-border rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between">
+          <h2 className="font-display text-2xl font-bold uppercase tracking-tight bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+            {title}
+          </h2>
+          <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-4">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Badge = ({ children, variant = "default", className = "" }) => {
   const variants = {
     default: "bg-muted text-muted-foreground",
@@ -762,7 +784,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settings, setSettings] = useState(null);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const adminName = localStorage.getItem('admin_name') || 'Admin';
   const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` } });
@@ -815,6 +839,30 @@ const AdminDashboard = () => {
     navigate('/admin');
   };
 
+  const openSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/settings`, getAuthHeaders());
+      setSettings(res.data);
+      setShowSettingsModal(true);
+    } catch (error) {
+      toast.error(language === 'es' ? 'Error al cargar ajustes' : 'Error loading settings');
+    }
+  };
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await axios.put(`${API}/admin/settings/profile`, settings.profile, getAuthHeaders());
+      await axios.put(`${API}/admin/settings/services`, settings.services, getAuthHeaders());
+      toast.success(language === 'es' ? '¡Ajustes guardados!' : 'Settings saved!');
+      setShowSettingsModal(false);
+    } catch (error) {
+      toast.error(language === 'es' ? 'Error al guardar' : 'Error saving');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   const filteredAppointments = filter === 'all' ? appointments : appointments.filter(a => a.status === filter);
   const statusColors = { pending: 'pending', confirmed: 'confirmed', completed: 'completed', cancelled: 'cancelled' };
   const statusLabels = { pending: t('statusPending'), confirmed: t('statusConfirmedLabel'), completed: t('statusCompletedLabel'), cancelled: t('statusCancelledLabel') };
@@ -837,7 +885,7 @@ const AdminDashboard = () => {
             <LayoutDashboard className="w-5 h-5" />
             <span className="font-medium">{t('dashboard')}</span>
           </button>
-          <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${activeTab === 'settings' ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30' : 'hover:bg-white/5 text-muted-foreground hover:text-white'}`}>
+          <button onClick={openSettings} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-white/5 text-muted-foreground hover:text-white">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Ajustes</span>
           </button>
@@ -869,18 +917,18 @@ const AdminDashboard = () => {
             <span className="font-display text-lg font-bold uppercase tracking-tight">Fast Mechanic</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setActiveTab(activeTab === 'dashboard' ? 'settings' : 'dashboard')} className="p-2 hover:bg-muted rounded-xl">
-              {activeTab === 'dashboard' ? <Settings className="w-5 h-5" /> : <LayoutDashboard className="w-5 h-5" />}
+            <button onClick={openSettings} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+              <Settings className="w-5 h-5" />
             </button>
             <LanguageSelector variant="dark" />
-            <button onClick={logout} className="p-2 hover:bg-muted rounded-xl"><LogOut className="w-5 h-5" /></button>
+            <button onClick={logout} className="p-2 hover:bg-white/10 rounded-xl transition-colors"><LogOut className="w-5 h-5" /></button>
           </div>
         </div>
 
-        {activeTab === 'dashboard' ? (
-          <>
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Dashboard Content */}
+        <>
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
                 { label: t('today'), value: stats?.today || 0, icon: Calendar, color: 'from-blue-500 to-blue-600' },
                 { label: t('pending'), value: stats?.pending || 0, icon: Clock, color: 'from-yellow-500 to-orange-500' },
@@ -969,10 +1017,91 @@ const AdminDashboard = () => {
               )}
             </div>
           </>
-        ) : (
-          <AdminSettings />
-        )}
       </main>
+
+      {/* Settings Modal */}
+      <Modal 
+        isOpen={showSettingsModal} 
+        onClose={() => setShowSettingsModal(false)}
+        title={language === 'es' ? 'Ajustes' : 'Settings'}
+      >
+        {settings ? (
+          <div className="space-y-6">
+            {/* Profile Section */}
+            <div>
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <User className="w-5 h-5 text-orange-500" />
+                {language === 'es' ? 'Mi Perfil' : 'My Profile'}
+              </h3>
+              <div className="space-y-3">
+                <Input 
+                  label={language === 'es' ? 'Nombre' : 'Name'} 
+                  value={settings.profile?.name || ''} 
+                  onChange={e => setSettings({...settings, profile: {...settings.profile, name: e.target.value}})} 
+                />
+                <Input 
+                  label={language === 'es' ? 'Teléfono' : 'Phone'} 
+                  value={settings.profile?.phone || ''} 
+                  onChange={e => setSettings({...settings, profile: {...settings.profile, phone: e.target.value}})} 
+                />
+                <Input 
+                  label="Email" 
+                  value={settings.profile?.email || ''} 
+                  onChange={e => setSettings({...settings, profile: {...settings.profile, email: e.target.value}})} 
+                />
+              </div>
+            </div>
+
+            {/* Services Section */}
+            <div>
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-orange-500" />
+                {language === 'es' ? 'Servicios' : 'Services'}
+              </h3>
+              <div className="space-y-4">
+                {settings.services?.map((service, idx) => (
+                  <div key={idx} className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <Input 
+                      label={language === 'es' ? 'Nombre (Español)' : 'Name (Spanish)'} 
+                      value={service.name || ''} 
+                      onChange={e => {
+                        const newServices = [...settings.services];
+                        newServices[idx].name = e.target.value;
+                        setSettings({...settings, services: newServices});
+                      }}
+                    />
+                    <Input 
+                      label={language === 'es' ? 'Precio ($)' : 'Price ($)'} 
+                      type="number" 
+                      value={service.price || 0} 
+                      onChange={e => {
+                        const newServices = [...settings.services];
+                        newServices[idx].price = parseFloat(e.target.value) || 0;
+                        setSettings({...settings, services: newServices});
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <Button 
+              onClick={saveSettings} 
+              disabled={savingSettings}
+              variant="fire"
+              className="w-full"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {savingSettings ? (language === 'es' ? 'Guardando...' : 'Saving...') : (language === 'es' ? 'Guardar Cambios' : 'Save Changes')}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
