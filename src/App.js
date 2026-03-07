@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { LanguageProvider, useLanguage } from "./LanguageContext";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://fastmecanic-backend.onrender.com';
 const API = `${BACKEND_URL}/api`;
 
 // ============ COMPONENTS ============
