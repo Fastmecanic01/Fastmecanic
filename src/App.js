@@ -881,7 +881,7 @@ const AdminDashboard = () => {
         </div>
 
         <nav className="space-y-2">
-          <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30' : 'hover:bg-white/5 text-muted-foreground hover:text-white'}`}>
+          <button className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30">
             <LayoutDashboard className="w-5 h-5" />
             <span className="font-medium">{t('dashboard')}</span>
           </button>
